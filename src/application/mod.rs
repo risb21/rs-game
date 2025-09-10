@@ -24,20 +24,24 @@ impl Application {
                 #version 140
 
                 in vec2 position;
-                uniform vec2 off;
+                in vec3 colour;
+                out vec3 vertex_colour;
+
+                uniform mat4 matrix;
                 
                 void main() {
-                    vec2 pos = position;
-                    pos.x += off.x;
-                    pos.y += off.y;
-                    gl_Position = vec4(pos, 0.0, 1.0);
+                    vertex_colour = colour;
+                    gl_Position = matrix * vec4(position, 0.0, 1.0);
                 }
             "#,
             frag_shader: r#"
                 #version 140
+
+                in vec3 vertex_colour;
                 out vec4 color;
+                
                 void main() {
-                    color = vec4(1.0, 0.0, 0.0, 1.0);
+                    color = vec4(vertex_colour, 1.0);
                 }
             "#,
             t: 0.0,
@@ -61,19 +65,32 @@ impl ApplicationHandler<()> for Application {
                 println!("#{} Cursor has entered!", self.count);
             },
             WindowEvent::RedrawRequested => {
-                self.t += 0.05;
-                let x_off = self.t.sin() * 0.5;
-                let y_off: f32 = self.t.cos() * 0.5;
+                // self.t += 0.05;
 
-                let offset = [x_off, y_off];
-
-                println!("x_off: {:?}", x_off);
+                let uniform = uniform! {
+                    matrix: [
+                        [ self.t.cos(), self.t.sin(), 0.0, 0.0    ],
+                        [-self.t.sin(), self.t.cos(), 0.0, 0.0    ],
+                        [     0.0     ,     0.0     , 1.0, 0.0    ],
+                        [     0.0     ,     0.0     , 0.0, 1.0f32 ],
+                    ]
+                };
 
                 let triangle = vec![
-                    Vertex { position: [-0.5, -0.5 ] },
-                    Vertex { position: [ 0.0,  0.5 ] },
-                    Vertex { position: [ 0.5, -0.25] },
+                    Vertex { 
+                        position: [-0.5, -0.5 ], 
+                        colour:   [ 1.0,  0.0,  0.0 ],
+                    },
+                    Vertex { 
+                        position: [ 0.5, -0.5 ],
+                        colour:   [ 0.0,  1.0,  0.0 ],
+                    },
+                    Vertex { 
+                        position: [ 0.0,  0.5 ],
+                        colour:   [ 0.0,  0.0,  1.0 ],
+                    },
                 ];
+
 
                 let vert_buffer = glium::VertexBuffer::new(&self.display, &triangle).unwrap();
                 let indices = glium::index::NoIndices(
@@ -83,12 +100,12 @@ impl ApplicationHandler<()> for Application {
                 let program = glium::Program::from_source(&self.display, self.vert_shader, self.frag_shader, None).unwrap();
 
                 let mut target = self.display.draw();
-                target.clear_color(0.0, 0.0, 1.0, 1.0);
+                target.clear_color(0.75, 0.0, 0.75, 1.0);
                 target.draw(
                     &vert_buffer,
                     &indices,
                     &program,
-                    &uniform! { off: offset },
+                    &uniform,
                     &Default::default()
                 ).unwrap();
                 

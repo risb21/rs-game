@@ -7,7 +7,7 @@ fn main() {
     let event_loop = winit::event_loop::EventLoop::new().unwrap();
     let (window, display) = glium::backend::glutin::SimpleWindowBuilder::new().build(&event_loop);
     let mut target = display.draw();
-    target.clear_color(0.0, 0.0, 0.5, 1.0);
+    target.clear_color(0.5, 0.0, 0.5, 1.0);
 
     // let triangle = vec![
     //     Vertex { position: [-0.5, -0.5 ] },
