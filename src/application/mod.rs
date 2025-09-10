@@ -11,11 +11,13 @@ pub struct Application {
     display: Display<WindowSurface>,
     vert_shader: &'static str,
     frag_shader: &'static str,
+    
     t: f32,
 }
 
 impl Application {
     pub fn new<T>(event_loop: &EventLoop<T>, window: Window, display: Display<WindowSurface>) -> Self {
+        // glium::texture:
         Self {
             count: 0,
             window: window,
@@ -65,7 +67,7 @@ impl ApplicationHandler<()> for Application {
                 println!("#{} Cursor has entered!", self.count);
             },
             WindowEvent::RedrawRequested => {
-                // self.t += 0.05;
+                self.t += 0.05;
 
                 let uniform = uniform! {
                     matrix: [
